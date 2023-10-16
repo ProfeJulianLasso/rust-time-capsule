@@ -4,7 +4,7 @@
   "description": "Rust Time Capsule es una blockchain diseñada en Rust. Combina Proof of History para la gestión temporal de transacciones y Proof of Work para la creación segura de bloques. Esta blockchain de propósito general está creada para ser de propiedad privada, permitiendo a las empresas implementarla como una solución eficiente y confiable para el almacenamiento y registro de datos. En este momento, se concibe para ser gestionada centralmente por la entidad propietaria, brindando control total sobre los datos.",
   "main": "index.node",
   "scripts": {
-    "build": "cargo-cp-artifact -nc index.node -- cargo build --message-format=json-render-diagnostics --release",
+    "build": "cargo-cp-artifact -nc index.node -- cargo build --message-format=json-render-diagnostics",
     "build-debug": "npm run build --",
     "build-release": "npm run build -- --release",
     "install": "npm run build-release",
