@@ -3,8 +3,13 @@
     "./Cargo.toml"
   ],
   "cSpell.words": [
+    "ascii",
     "cdylib",
-    "napi"
+    "napi",
+    "pietrzak",
+    "Pietrzak",
+    "wesolowski",
+    "Wesolowski"
   ],
   "rust-analyzer.showUnlinkedFileNotification": false
 }

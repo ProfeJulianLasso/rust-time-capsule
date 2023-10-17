@@ -4,7 +4,7 @@ version = "0.0.1"
 description = "Rust Time Capsule es una blockchain diseñada en Rust. Combina Proof of History para la gestión temporal de transacciones y Proof of Work para la creación segura de bloques. Esta blockchain de propósito general está creada para ser de propiedad privada, permitiendo a las empresas implementarla como una solución eficiente y confiable para el almacenamiento y registro de datos. En este momento, se concibe para ser gestionada centralmente por la entidad propietaria, brindando control total sobre los datos."
 authors = ["Julián Andrés Lasso Figueroa <julian.lasso@sofka.com.co>"]
 license = "MIT"
-edition = "2018"
+edition = "2021"
 exclude = ["index.node"]
 
 [lib]
@@ -13,8 +13,9 @@ crate-type = ["cdylib"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-
-[dependencies.neon]
-version = "0.10.1"
-default-features = false
-features = ["napi-6"]
+hex = "0.4.3"
+neon = { version = "0.10.1", default-features = false, features = ["napi-6"] }
+neon-serde3 = "0.10.0"
+regex = "1.10.2"
+serde = { version = "1.0.189", features = ["derive"] }
+vdf = "0.1.0"
