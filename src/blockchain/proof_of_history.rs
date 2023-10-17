@@ -24,57 +24,103 @@ pub struct ProofOfHistoryResult {
     pub difficulty: u64,
 }
 
-pub fn proof(data: &mut ProofOfHistoryParams) -> ProofOfHistoryResult {
-    match data.type_of_proof.as_ref() {
-        Some(proof) => valid_proof_type(&proof.to_string().to_lowercase()),
-        None => data.type_of_proof = Some(PROOF_OF_HISTORY_TYPE_DEFAULT.to_string()),
-    }
+pub fn proof(parameter: &mut ProofOfHistoryParams) -> ProofOfHistoryResult {
+    validate_and_correct_default_parameters(parameter);
 
-    match &data.length {
-        Some(length) => {
-            if *length < 1 {
-                data.length = Some(LENGTH_DEFAULT);
-            }
-        }
-        None => data.length = Some(LENGTH_DEFAULT),
-    }
-
-    match &data.difficulty {
-        Some(difficulty) => {
-            if *difficulty < DIFFICULTY_DEFAULT {
-                data.difficulty = Some(DIFFICULTY_DEFAULT);
-            }
-        }
-        None => data.difficulty = Some(DIFFICULTY_DEFAULT),
-    }
-
-    // println!("Challenge: {:#?}", data);
+    // println!("Challenge: {:#?}", parameter);
 
     let mut result = ProofOfHistoryResult {
         solution: "".to_string(),
-        proof: data.type_of_proof.as_ref().unwrap().to_string(),
-        length: data.length.unwrap(),
-        difficulty: data.difficulty.unwrap(),
+        proof: parameter.type_of_proof.as_ref().unwrap().to_string(),
+        length: parameter.length.unwrap(),
+        difficulty: parameter.difficulty.unwrap(),
     };
 
-    if data.type_of_proof.as_ref().unwrap() == PROOF_OF_HISTORY_TYPE[0] {
-        let pietrzak = PietrzakVDFParams(data.length.unwrap()).new();
+    if parameter.type_of_proof.as_ref().unwrap() == PROOF_OF_HISTORY_TYPE[0] {
+        let pietrzak = PietrzakVDFParams(parameter.length.unwrap()).new();
         let challenge = pietrzak
-            .solve(&data.challenge.as_bytes(), data.difficulty.unwrap())
+            .solve(
+                &parameter.challenge.as_bytes(),
+                parameter.difficulty.unwrap(),
+            )
             .unwrap();
         result.solution = hex::encode(&challenge);
     } else {
-        let wesolowski = WesolowskiVDFParams(data.length.unwrap()).new();
+        let wesolowski = WesolowskiVDFParams(parameter.length.unwrap()).new();
         let challenge = wesolowski
-            .solve(&data.challenge.as_bytes(), data.difficulty.unwrap())
+            .solve(
+                &parameter.challenge.as_bytes(),
+                parameter.difficulty.unwrap(),
+            )
             .unwrap();
         result.solution = hex::encode(&challenge);
     }
     result
 }
 
+pub fn verify(parameter: &mut ProofOfHistoryParams) -> String {
+    validate_and_correct_default_parameters(parameter);
+    validate_contents_of_alleged_solution(&parameter);
+
+    // println!("Challenge: {:#?}", parameter);
+    let alleged_solution = &hex::decode(parameter.alleged_solution.as_ref().unwrap().as_bytes());
+
+    if parameter.type_of_proof.as_ref().unwrap() == PROOF_OF_HISTORY_TYPE[0] {
+        let pietrzak = PietrzakVDFParams(parameter.length.unwrap()).new();
+        match pietrzak.verify(
+            &parameter.challenge.as_bytes(),
+            parameter.difficulty.unwrap(),
+            alleged_solution.as_ref().unwrap(),
+        ) {
+            Ok(()) => "Proof is valid".to_string(),
+            Err(_) => "Invalid proof".to_string(),
+        }
+    } else {
+        let wesolowski = WesolowskiVDFParams(parameter.length.unwrap()).new();
+        match wesolowski.verify(
+            &parameter.challenge.as_bytes(),
+            parameter.difficulty.unwrap(),
+            alleged_solution.as_ref().unwrap(),
+        ) {
+            Ok(()) => "Proof is valid".to_string(),
+            Err(_) => "Invalid proof".to_string(),
+        }
+    }
+}
+
 fn valid_proof_type(proof: &String) {
     if !PROOF_OF_HISTORY_TYPE.contains(&proof.as_str()) {
         panic!("Invalid proof of history type");
+    }
+}
+
+fn validate_and_correct_default_parameters(parameter: &mut ProofOfHistoryParams) {
+    match parameter.type_of_proof.as_ref() {
+        Some(proof) => valid_proof_type(&proof.to_string().to_lowercase()),
+        None => parameter.type_of_proof = Some(PROOF_OF_HISTORY_TYPE_DEFAULT.to_string()),
+    }
+
+    match &parameter.length {
+        Some(length) => {
+            if *length < 1 {
+                parameter.length = Some(LENGTH_DEFAULT);
+            }
+        }
+        None => parameter.length = Some(LENGTH_DEFAULT),
+    }
+
+    match &parameter.difficulty {
+        Some(difficulty) => {
+            if *difficulty < DIFFICULTY_DEFAULT {
+                parameter.difficulty = Some(DIFFICULTY_DEFAULT);
+            }
+        }
+        None => parameter.difficulty = Some(DIFFICULTY_DEFAULT),
+    }
+}
+
+fn validate_contents_of_alleged_solution(data: &ProofOfHistoryParams) {
+    if data.alleged_solution.as_ref().unwrap().len() == 0 {
+        panic!("Alleged solution is empty");
     }
 }

@@ -1,10 +1,10 @@
 mod blockchain;
 
-use blockchain::proof_of_history::{proof, ProofOfHistoryParams};
+use blockchain::proof_of_history::{proof, verify, ProofOfHistoryParams};
 use neon::{
     prelude::{Context, FunctionContext, ModuleContext, Object},
     result::{JsResult, NeonResult},
-    types::{JsObject, JsString, JsValue},
+    types::{JsObject, JsValue},
 };
 
 fn create_proof_of_history(mut context: FunctionContext) -> JsResult<JsObject> {
@@ -38,8 +38,25 @@ fn create_proof_of_history(mut context: FunctionContext) -> JsResult<JsObject> {
     Ok(object)
 }
 
-fn verify_proof_of_history(mut context: FunctionContext) -> JsResult<JsString> {
-    Ok(context.string("hello node"))
+fn verify_proof_of_history(mut context: FunctionContext) -> JsResult<JsObject> {
+    let params = context
+        .argument::<JsValue>(0)
+        .unwrap_or_else(|_| panic!("Invalid data"));
+
+    let mut params: ProofOfHistoryParams = match neon_serde3::from_value(&mut context, params) {
+        Ok(value) => value,
+        Err(error) => {
+            return context.throw_error(error.to_string());
+        }
+    };
+
+    let result = verify(&mut params);
+
+    let object = context.empty_object();
+    let result = context.string(&result);
+    object.set(&mut context, "result", result)?;
+
+    Ok(object)
 }
 
 #[neon::main]
