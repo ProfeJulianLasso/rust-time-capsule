@@ -10,8 +10,9 @@
       "request": "launch",
       "program": "node",
       "args": [
-        "-e",
-        "console.log(require('./index.node').hello());"
+        "test.js"
+        // "-e",
+        // "console.log(require('./index.node').createProofOfHistory({challenge: 'datos', difficulty: 1024}));"
       ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
