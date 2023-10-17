@@ -5,52 +5,72 @@ use vdf::{PietrzakVDFParams, VDFParams, WesolowskiVDFParams, VDF};
 
 const PROOF_OF_HISTORY_TYPE_DEFAULT: &str = "wesolowski";
 const PROOF_OF_HISTORY_TYPE: [&str; 2] = ["pietrzak", "wesolowski"];
-const DIFFICULTY_DEFAULT: u64 = 200;
+const DIFFICULTY_DEFAULT: u64 = 66;
+const LENGTH_DEFAULT: u16 = 2048;
 
 #[derive(Serialize, Debug, Deserialize)]
-pub struct ProofOfHistory {
+pub struct ProofOfHistoryParams {
     pub challenge: String,
+    pub length: Option<u16>,
     pub difficulty: Option<u64>,
     pub alleged_solution: Option<String>,
     pub type_of_proof: Option<String>,
 }
 
-pub fn proof(data: &mut ProofOfHistory) -> String {
+pub struct ProofOfHistoryResult {
+    pub solution: String,
+    pub proof: String,
+    pub length: u16,
+    pub difficulty: u64,
+}
+
+pub fn proof(data: &mut ProofOfHistoryParams) -> ProofOfHistoryResult {
     match data.type_of_proof.as_ref() {
-        Some(proof) => {
-            valid_proof_type(&proof.to_string().to_lowercase());
+        Some(proof) => valid_proof_type(&proof.to_string().to_lowercase()),
+        None => data.type_of_proof = Some(PROOF_OF_HISTORY_TYPE_DEFAULT.to_string()),
+    }
+
+    match &data.length {
+        Some(length) => {
+            if *length < 1 {
+                data.length = Some(LENGTH_DEFAULT);
+            }
         }
-        None => {
-            data.type_of_proof = Some(PROOF_OF_HISTORY_TYPE_DEFAULT.to_string());
-        }
+        None => data.length = Some(LENGTH_DEFAULT),
     }
 
     match &data.difficulty {
         Some(difficulty) => {
-            if *difficulty < 66 {
-                panic!("Difficulty must be greater than or equal to 66");
+            if *difficulty < DIFFICULTY_DEFAULT {
+                data.difficulty = Some(DIFFICULTY_DEFAULT);
             }
         }
-        None => {
-            data.difficulty = Some(DIFFICULTY_DEFAULT);
-        }
+        None => data.difficulty = Some(DIFFICULTY_DEFAULT),
     }
 
-    println!("Challenge: {:#?}", data);
+    // println!("Challenge: {:#?}", data);
+
+    let mut result = ProofOfHistoryResult {
+        solution: "".to_string(),
+        proof: data.type_of_proof.as_ref().unwrap().to_string(),
+        length: data.length.unwrap(),
+        difficulty: data.difficulty.unwrap(),
+    };
 
     if data.type_of_proof.as_ref().unwrap() == PROOF_OF_HISTORY_TYPE[0] {
-        let pietrzak = PietrzakVDFParams(2048).new();
+        let pietrzak = PietrzakVDFParams(data.length.unwrap()).new();
         let challenge = pietrzak
             .solve(&data.challenge.as_bytes(), data.difficulty.unwrap())
             .unwrap();
-        hex::encode(&challenge)
+        result.solution = hex::encode(&challenge);
     } else {
-        let wesolowski = WesolowskiVDFParams(2048).new();
+        let wesolowski = WesolowskiVDFParams(data.length.unwrap()).new();
         let challenge = wesolowski
             .solve(&data.challenge.as_bytes(), data.difficulty.unwrap())
             .unwrap();
-        hex::encode(&challenge)
+        result.solution = hex::encode(&challenge);
     }
+    result
 }
 
 fn valid_proof_type(proof: &String) {
