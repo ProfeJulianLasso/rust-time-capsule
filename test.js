@@ -6,7 +6,9 @@ const data = {
     receiver: "dd023442-3c49-4f43-ab10-68253e751933",
     amount: 5325.33,
   }),
-  // type_of_proof: "wesolowski",
+  type_of_proof: "wesolowski", // pietrzak, wesolowski
+  length: 2048,
+  difficulty: 200,
 };
 
 try {
