@@ -4,10 +4,14 @@
   ],
   "cSpell.words": [
     "ascii",
+    "blake",
     "cdylib",
+    "cpus",
+    "libsodium",
     "napi",
     "pietrzak",
     "Pietrzak",
+    "randombytes",
     "wesolowski",
     "Wesolowski"
   ],
